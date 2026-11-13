@@ -1,23 +1,20 @@
 {
-  "name": "Frame Folk - Mobile Photo Editor",
+  "name": "Frame Folk Photo Editor",
   "short_name": "FrameFolk",
-  "start_url": "./",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b0f17",
-  "theme_color": "#12161f",
-  "description": "Professional mobile photo editor and offline editor app.",
+  "theme_color": "#0b0f17",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ]
 }

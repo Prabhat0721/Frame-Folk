@@ -1,136 +1,369 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frame Folk — Professional Photo Editor</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0f17">
+<title>Frame Folk — Professional Photo Editor</title>
+
+<link rel="manifest" href="./manifest.json">
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 </head>
+
 <body>
-    <div class="app-container">
-        <!-- Top Toolbar -->
-        <header class="top-bar">
-            <div class="brand">
-                <h1>FRAME FOLK</h1>
-                <span class="slogan">Timeless Tales of Togetherness</span>
-            </div>
-            <div class="top-actions">
-                <input type="file" id="imageLoader" accept="image/*" hidden>
-                <button id="uploadBtn" class="btn primary"><i class="fas fa-upload"></i> Upload</button>
-                <button id="undoBtn" class="btn" title="Undo" disabled><i class="fas fa-undo"></i></button>
-                <button id="redoBtn" class="btn" title="Redo" disabled><i class="fas fa-redo"></i></button>
-                <button id="resetBtn" class="btn" title="Reset All"><i class="fas fa-sync-alt"></i> Reset</button>
-                <button id="compareBtn" class="btn" title="Hold to Compare"><i class="fas fa-columns"></i> Before/After</button>
-                <button id="exportBtn" class="btn accent"><i class="fas fa-download"></i> Export JPG</button>
-            </div>
-        </header>
 
-        <!-- Main Workspace -->
-        <div class="main-workspace">
-            <!-- Left / Center Canvas Area -->
-            <div class="canvas-container">
-                <div id="dropZone" class="drop-zone">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h3>Drag & Drop your photo here</h3>
-                    <p>or click Upload to start editing</p>
-                    <button class="btn primary" onclick="document.getElementById('imageLoader').click()">Browse Photo</button>
-                </div>
-                <canvas id="imageCanvas" class="hidden"></canvas>
-            </div>
+<div class="app-container">
 
-            <!-- Right Sidebar Controls -->
-            <aside class="sidebar">
-                <div class="tabs">
-                    <button class="tab-btn active" data-target="lightPanel"><i class="fas fa-sun"></i> Light</button>
-                    <button class="tab-btn" data-target="colorPanel"><i class="fas fa-palette"></i> Color</button>
-                    <button class="tab-btn" data-target="effectsPanel"><i class="fas fa-magic"></i> Effects</button>
-                    <button class="tab-btn" data-target="transformPanel"><i class="fas fa-crop"></i> Transform</button>
-                </div>
+<header class="top-bar">
 
-                <div class="panel-content">
-                    <!-- Light Panel -->
-                    <div id="lightPanel" class="control-panel active">
-                        <h3>Light Adjustments</h3>
-                        <div class="control-group">
-                            <label>Exposure <span id="exposureVal">0</span></label>
-                            <input type="range" id="exposure" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Contrast <span id="contrastVal">0</span></label>
-                            <input type="range" id="contrast" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Highlights <span id="highlightsVal">0</span></label>
-                            <input type="range" id="highlights" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Shadows <span id="shadowsVal">0</span></label>
-                            <input type="range" id="shadows" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Whites <span id="whitesVal">0</span></label>
-                            <input type="range" id="whites" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Blacks <span id="blacksVal">0</span></label>
-                            <input type="range" id="blacks" min="-100" max="100" value="0">
-                        </div>
-                    </div>
+<div class="brand">
+<h1>FRAME FOLK</h1>
+<span class="slogan">Timeless Tales of Togetherness</span>
+</div>
 
-                    <!-- Color Panel -->
-                    <div id="colorPanel" class="control-panel">
-                        <h3>Color & Tone</h3>
-                        <div class="control-group">
-                            <label>Temperature <span id="tempVal">0</span></label>
-                            <input type="range" id="temp" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Tint <span id="tintVal">0</span></label>
-                            <input type="range" id="tint" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Saturation <span id="saturationVal">0</span></label>
-                            <input type="range" id="saturation" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Vibrance <span id="vibranceVal">0</span></label>
-                            <input type="range" id="vibrance" min="-100" max="100" value="0">
-                        </div>
-                    </div>
+<div class="top-actions">
 
-                    <!-- Effects Panel -->
-                    <div id="effectsPanel" class="control-panel">
-                        <h3>Effects & Texture</h3>
-                        <div class="control-group">
-                            <label>Clarity <span id="clarityVal">0</span></label>
-                            <input type="range" id="clarity" min="-100" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Vignette <span id="vignetteVal">0</span></label>
-                            <input type="range" id="vignette" min="0" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Grain <span id="grainVal">0</span></label>
-                            <input type="range" id="grain" min="0" max="100" value="0">
-                        </div>
-                        <div class="control-group">
-                            <label>Sharpen <span id="sharpenVal">0</span></label>
-                            <input type="range" id="sharpen" min="0" max="100" value="0">
-                        </div>
-                    </div>
+<input type="file" id="imageLoader" accept="image/*" hidden>
 
-                    <!-- Transform Panel -->
-                    <div id="transformPanel" class="control-panel">
-                        <h3>Transform & Crop</h3>
-                        <div class="button-grid">
-                            <button id="rotateLeftBtn" class="btn"><i class="fas fa-undo"></i> Rotate Left</button>
-                            <button id="rotateRightBtn" class="btn"><i class="fas fa-redo"></i> Rotate Right</button>
-                            <button id="flipHBtn" class="btn"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
-                            <button id="flipVBtn" class="btn"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-        </div>
-  
+<button id="uploadBtn" class="btn primary">
+<i class="fas fa-upload"></i> Upload
+</button>
+
+<button id="undoBtn" class="btn" disabled>
+<i class="fas fa-undo"></i>
+</button>
+
+<button id="redoBtn" class="btn" disabled>
+<i class="fas fa-redo"></i>
+</button>
+
+<button id="resetBtn" class="btn">
+<i class="fas fa-sync-alt"></i> Reset
+</button>
+
+<button id="compareBtn" class="btn">
+<i class="fas fa-columns"></i> Before/After
+</button>
+
+<button id="exportBtn" class="btn accent">
+<i class="fas fa-download"></i> Export JPG
+</button>
+
+</div>
+</header>
+
+<main class="main-workspace">
+
+<section class="canvas-container">
+
+<div id="dropZone" class="drop-zone">
+
+<i class="fas fa-cloud-upload-alt"></i>
+
+<h3>Drag & Drop your photo here</h3>
+
+<p>or click Upload to start editing</p>
+
+<button class="btn primary" id="browseBtn">
+Browse Photo
+</button>
+
+</div>
+
+<canvas id="imageCanvas" class="hidden"></canvas>
+
+<div id="canvasHint">Upload a photo to begin</div>
+
+</section>
+
+<aside class="sidebar">
+
+<nav class="tabs">
+
+<button class="tab-btn active" data-target="lightPanel">
+<i class="fas fa-sun"></i> Light
+</button>
+
+<button class="tab-btn" data-target="colorPanel">
+<i class="fas fa-palette"></i> Color
+</button>
+
+<button class="tab-btn" data-target="effectsPanel">
+<i class="fas fa-magic"></i> Effects
+</button>
+
+<button class="tab-btn" data-target="transformPanel">
+<i class="fas fa-crop"></i> Transform
+</button>
+
+</nav>
+
+<div class="panel-content">
+
+<!-- LIGHT PANEL -->
+
+<section id="lightPanel" class="control-panel active">
+
+<h3>Light Adjustments</h3>
+
+<div class="control-group">
+<label>Exposure <output id="exposureVal">0</output></label>
+<input type="range" id="exposure" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Brightness <output id="brightnessVal">0</output></label>
+<input type="range" id="brightness" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Contrast <output id="contrastVal">0</output></label>
+<input type="range" id="contrast" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Highlights <output id="highlightsVal">0</output></label>
+<input type="range" id="highlights" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Shadows <output id="shadowsVal">0</output></label>
+<input type="range" id="shadows" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Whites <output id="whitesVal">0</output></label>
+<input type="range" id="whites" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Blacks <output id="blacksVal">0</output></label>
+<input type="range" id="blacks" min="-100" max="100" value="0">
+</div>
+
+</section>
+
+<!-- COLOR PANEL -->
+
+<section id="colorPanel" class="control-panel">
+
+<h3>Color & Tone</h3>
+
+<div class="control-group">
+<label>Temperature <output id="tempVal">0</output></label>
+<input type="range" id="temp" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Tint <output id="tintVal">0</output></label>
+<input type="range" id="tint" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Saturation <output id="saturationVal">0</output></label>
+<input type="range" id="saturation" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Vibrance <output id="vibranceVal">0</output></label>
+<input type="range" id="vibrance" min="-100" max="100" value="0">
+</div>
+
+<!-- HSL MIXER -->
+
+<div class="subsection">
+
+<h3>HSL Color Mixer</h3>
+
+<label>Select Color</label>
+
+<select id="hslChannel">
+<option value="red">Red</option>
+<option value="orange">Orange</option>
+<option value="yellow">Yellow</option>
+<option value="green">Green</option>
+<option value="cyan">Cyan</option>
+<option value="blue">Blue</option>
+<option value="purple">Purple</option>
+<option value="magenta">Magenta</option>
+</select>
+
+<div class="control-group">
+<label>Hue <output id="hslHueVal">0</output></label>
+<input type="range" id="hslHue" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Saturation <output id="hslSatVal">0</output></label>
+<input type="range" id="hslSat" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Luminance <output id="hslLumVal">0</output></label>
+<input type="range" id="hslLum" min="-100" max="100" value="0">
+</div>
+
+</div>
+
+<!-- COLOR GRADING -->
+
+<div class="subsection">
+
+<h3>Color Grading</h3>
+
+<label>Tone Range</label>
+
+<select id="gradeRange">
+<option value="shadows">Shadows</option>
+<option value="midtones">Midtones</option>
+<option value="highlights">Highlights</option>
+</select>
+
+<label>Color</label>
+
+<input type="color" id="gradeColor" value="#000000">
+
+<div class="control-group">
+<label>Strength <output id="gradeStrengthVal">0</output></label>
+<input type="range" id="gradeStrength" min="0" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Blending <output id="gradeBlendVal">50</output></label>
+<input type="range" id="gradeBlend" min="0" max="100" value="50">
+</div>
+
+<div class="control-group">
+<label>Balance <output id="gradeBalanceVal">0</output></label>
+<input type="range" id="gradeBalance" min="-100" max="100" value="0">
+</div>
+
+</div>
+
+</section>
+
+<!-- EFFECTS PANEL -->
+
+<section id="effectsPanel" class="control-panel">
+
+<h3>Effects & Texture</h3>
+
+<div class="control-group">
+<label>Texture <output id="textureVal">0</output></label>
+<input type="range" id="texture" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Clarity <output id="clarityVal">0</output></label>
+<input type="range" id="clarity" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Dehaze <output id="dehazeVal">0</output></label>
+<input type="range" id="dehaze" min="-100" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Vignette <output id="vignetteVal">0</output></label>
+<input type="range" id="vignette" min="0" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Grain <output id="grainVal">0</output></label>
+<input type="range" id="grain" min="0" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Sharpen <output id="sharpenVal">0</output></label>
+<input type="range" id="sharpen" min="0" max="100" value="0">
+</div>
+
+<div class="control-group">
+<label>Noise Reduction <output id="noiseReductionVal">0</output></label>
+<input type="range" id="noiseReduction" min="0" max="100" value="0">
+</div>
+
+</section>
+
+<!-- TRANSFORM PANEL -->
+
+<section id="transformPanel" class="control-panel">
+
+<h3>Transform & Crop</h3>
+
+<div class="button-grid">
+
+<button id="rotateLeftBtn" class="btn">
+<i class="fas fa-undo"></i> Rotate Left
+</button>
+
+<button id="rotateRightBtn" class="btn">
+<i class="fas fa-redo"></i> Rotate Right
+</button>
+
+<button id="flipHBtn" class="btn">
+<i class="fas fa-arrows-alt-h"></i> Flip H
+</button>
+
+<button id="flipVBtn" class="btn">
+<i class="fas fa-arrows-alt-v"></i> Flip V
+</button>
+
+</div>
+
+<div class="subsection">
+
+<h3>Crop Image</h3>
+
+<label>Aspect Ratio</label>
+
+<select id="cropRatio">
+<option value="free">Original</option>
+<option value="1:1">1:1 Square</option>
+<option value="3:2">3:2</option>
+<option value="2:3">2:3</option>
+<option value="4:5">4:5 Portrait</option>
+<option value="5:4">5:4</option>
+<option value="16:9">16:9</option>
+<option value="9:16">9:16 Story</option>
+</select>
+
+<button id="applyCropBtn" class="btn primary full">
+Apply Crop
+</button>
+
+<button id="resetCropBtn" class="btn full">
+Reset Crop
+</button>
+
+</div>
+
+</section>
+
+</div>
+</aside>
+
+</main>
+
+<footer class="status-bar">
+<span id="statusText">Ready — upload an image to start</span>
+<span>Frame Folk • Photo Editor</span>
+</footer>
+
+</div>
+
+<script src="./script.js"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(console.error);
+  });
+}
+</script>
+
+</body>
+</html>

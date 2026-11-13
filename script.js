@@ -882,4 +882,64 @@ async function exportJPEG() {
 
     const output = document.createElement('canvas');
 
-    renderTo(output
+    
+    renderTo(output, true, false);
+
+    const blob = await new Promise(resolve => {
+      output.toBlob(resolve, 'image/jpeg', 0.95);
+    });
+
+    if (!blob) throw new Error('JPEG export failed.');
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = 'Frame-Folk-Edited.jpg';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+  } catch (error) {
+    console.error(error);
+    alert('Export failed. Try a smaller image.');
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Export JPG';
+    }
+  }
+}
+
+connectButton('exportBtn', exportJPEG);
+
+document.addEventListener('keydown', (event) => {
+  if (
+    event.target.matches('input, textarea, select') ||
+    event.target.isContentEditable
+  ) return;
+
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+    event.preventDefault();
+    undo();
+  }
+
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    event.key.toLowerCase() === 'y'
+  ) {
+    event.preventDefault();
+    redo();
+  }
+});
+
+syncControls();
+updateHistoryButtons();
+
+const exportButton = $('exportBtn');
+if (exportButton) exportButton.disabled = true;
+
+console.log('Frame Folk Photo Editor Engine loaded.');
+

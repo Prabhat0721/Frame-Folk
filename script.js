@@ -942,4 +942,3 @@ const exportButton = $('exportBtn');
 if (exportButton) exportButton.disabled = true;
 
 console.log('Frame Folk Photo Editor Engine loaded.');
-

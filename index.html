@@ -1,752 +1,136 @@
-sr<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Frame Folk - Mobile Photo Editor</title>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- React and ReactDOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  
-  <!-- Babel for JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #0b0f17;
-      color: #e5e7eb;
-    }
-    .scrollbar-none::-webkit-scrollbar {
-      display: none;
-    }
-    .scrollbar-none {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frame Folk — Professional Photo Editor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-[#0b0f17] flex items-center justify-center min-h-screen m-0 p-0">
-  <div id="root" class="w-full h-full flex items-center justify-center"></div>
-
-  <script type="text/babel">
-    const { useState, useEffect } = React;
-
-    const SAMPLE_PHOTOS = [
-      {
-        id: 1,
-        name: 'Cinematic Sunset Landscape',
-        url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
-        category: 'Landscape'
-      },
-      {
-        id: 2,
-        name: 'Portrait Model',
-        url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80',
-        category: 'Portrait'
-      },
-      {
-        id: 3,
-        name: 'Urban Alleyway',
-        url: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80',
-        category: 'Architecture'
-      },
-      {
-        id: 4,
-        name: 'Vibrant Nature',
-        url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
-        category: 'Nature'
-      }
-    ];
-
-    const PRESETS = [
-      { name: 'Original', values: { exposure: 0, contrast: 0, highlights: 0, shadows: 0, whites: 0, blacks: 0, temp: 0, tint: 0, vibrance: 0, saturation: 0, texture: 0, clarity: 0, dehaze: 0, vignette: 0, grain: 0, sharpening: 0 } },
-      { name: 'Natural', values: { exposure: 0.1, contrast: 5, highlights: -10, shadows: 15, whites: 5, blacks: -5, temp: 2, tint: 0, vibrance: 10, saturation: 5, texture: 10, clarity: 5, dehaze: 5, vignette: 0, grain: 0, sharpening: 15 } },
-      { name: 'Bright', values: { exposure: 0.35, contrast: 10, highlights: -15, shadows: 25, whites: 15, blacks: -10, temp: 5, tint: 2, vibrance: 20, saturation: 10, texture: 5, clarity: 10, dehaze: 0, vignette: 0, grain: 0, sharpening: 20 } },
-      { name: 'High Contrast', values: { exposure: -0.1, contrast: 35, highlights: 20, shadows: -25, whites: 25, blacks: -30, temp: 0, tint: -2, vibrance: 15, saturation: 10, texture: 20, clarity: 25, dehaze: 15, vignette: 25, grain: 15, sharpening: 30 } },
-      { name: 'Modern Moody', values: { exposure: -0.2, contrast: 20, highlights: -30, shadows: -15, whites: -10, blacks: -20, temp: -12, tint: 8, vibrance: -10, saturation: -15, texture: 15, clarity: 20, dehaze: 20, vignette: 40, grain: 30, sharpening: 25 } },
-      { name: 'Vivid Sunset', values: { exposure: 0.15, contrast: 15, highlights: -20, shadows: 10, whites: 10, blacks: -5, temp: 15, tint: 5, vibrance: 35, saturation: 20, texture: 10, clarity: 15, dehaze: 10, vignette: 15, grain: 5, sharpening: 20 } }
-    ];
-
-    function App() {
-      const [selectedImage, setSelectedImage] = useState(SAMPLE_PHOTOS[0]);
-      const [activeTool, setActiveTool] = useState('light');
-      const [lightSubTab, setLightSubTab] = useState('exposure');
-      const [colorSubTab, setColorSubTab] = useState('temp');
-      const [effectsSubTab, setEffectsSubTab] = useState('texture');
-      const [detailSubTab, setDetailSubTab] = useState('sharpening');
-      const [activePreset, setActivePreset] = useState('Original');
-      const [cropRatio, setCropRatio] = useState('Original');
-      const [healedSpots, setHealedSpots] = useState([]);
-      
-      const [showExportModal, setShowExportModal] = useState(false);
-      const [exportFormat, setExportFormat] = useState('image/jpeg');
-      const [exportQuality, setExportQuality] = useState(1.0);
-      const [exportOriginalSize, setExportOriginalSize] = useState(true);
-      const [isExporting, setIsExporting] = useState(false);
-      
-      const [adjustments, setAdjustments] = useState({
-        exposure: 0, contrast: 0, highlights: 0, shadows: 0,
-        whites: 0, blacks: 0, temp: 0, tint: 0,
-        vibrance: 0, saturation: 0, texture: 0, clarity: 0,
-        dehaze: 0, vignette: 0, grain: 0, sharpening: 0
-      });
-
-      const [history, setHistory] = useState([]);
-      const [redoStack, setRedoStack] = useState([]);
-      const [showPhotoPicker, setShowPhotoPicker] = useState(false);
-      const [toastMessage, setToastMessage] = useState(null);
-
-      const showToast = (msg) => {
-        setToastMessage(msg);
-        setTimeout(() => setToastMessage(null), 2500);
-      };
-
-      const handleSliderChange = (key, value) => {
-        setHistory([...history, { ...adjustments }]);
-        setRedoStack([]);
-        setAdjustments({ ...adjustments, [key]: parseFloat(value) });
-        setActivePreset('Custom');
-      };
-
-      const applyPreset = (preset) => {
-        setActivePreset(preset.name);
-        setAdjustments({ ...preset.values });
-        showToast(`Applied preset: ${preset.name}`);
-      };
-
-      const handleUndo = () => {
-        if (history.length === 0) {
-          showToast('Nothing to undo');
-          return;
-        }
-        const previous = history[history.length - 1];
-        setRedoStack([adjustments, ...redoStack]);
-        setAdjustments(previous);
-        setHistory(history.slice(0, history.length - 1));
-        showToast('Undo action');
-      };
-
-      const handleRedo = () => {
-        if (redoStack.length === 0) {
-          showToast('Nothing to redo');
-          return;
-        }
-        const next = redoStack[0];
-        setHistory([...history, adjustments]);
-        setAdjustments(next);
-        setRedoStack(redoStack.slice(1));
-        showToast('Redo action');
-      };
-
-      const handleAutoAdjust = () => {
-        setAdjustments({
-          exposure: 0.2, contrast: 15, highlights: -20, shadows: 20,
-          whites: 10, blacks: -10, temp: 2, tint: 1,
-          vibrance: 15, saturation: 5, texture: 10, clarity: 15,
-          dehaze: 10, vignette: 10, grain: 0, sharpening: 25
-        });
-        setActivePreset('Auto');
-        showToast('Auto tone applied successfully');
-      };
-
-      const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const url = URL.createObjectURL(file);
-          setSelectedImage({ id: Date.now(), name: file.name, url: url, category: 'Custom' });
-          setHealedSpots([]);
-          setShowPhotoPicker(false);
-          showToast(`Loaded: ${file.name}`);
-        }
-      };
-
-      const handleImageClick = (e) => {
-        if (activeTool === 'healing') {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const x = ((e.clientX - rect.left) / rect.width) * 100;
-          const y = ((e.clientY - rect.top) / rect.height) * 100;
-          setHealedSpots([...healedSpots, { id: Date.now(), x, y }]);
-          showToast('Blemish healed successfully 🩹');
-        }
-      };
-
-      // Fully working Canvas Export Engine with Crop, Filters, Vignette, Grain & Healing
-      const executeExport = async () => {
-        setIsExporting(true);
-        showToast('Processing 100% full-resolution photo...');
-
-        try {
-          const response = await fetch(selectedImage.url);
-          const blob = await response.blob();
-          const objectUrl = URL.createObjectURL(blob);
-
-          const img = new Image();
-          img.src = objectUrl;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            let sWidth = img.naturalWidth || 1200;
-            let sHeight = img.naturalHeight || 800;
-            let sx = 0, sy = 0;
-
-            // Compute Crop dimensions
-            if (cropRatio === '1:1') {
-              const min = Math.min(sWidth, sHeight);
-              sx = (sWidth - min) / 2;
-              sy = (sHeight - min) / 2;
-              sWidth = min;
-              sHeight = min;
-            } else if (cropRatio === '16:9') {
-              const targetHeight = sWidth * (9 / 16);
-              if (targetHeight <= sHeight) {
-                sy = (sHeight - targetHeight) / 2;
-                sHeight = targetHeight;
-              } else {
-                const targetWidth = sHeight * (16 / 9);
-                sx = (sWidth - targetWidth) / 2;
-                sWidth = targetWidth;
-              }
-            } else if (cropRatio === '4:3') {
-              const targetHeight = sWidth * (3 / 4);
-              if (targetHeight <= sHeight) {
-                sy = (sHeight - targetHeight) / 2;
-                sHeight = targetHeight;
-              } else {
-                const targetWidth = sHeight * (4 / 3);
-                sx = (sWidth - targetWidth) / 2;
-                sWidth = targetWidth;
-              }
-            }
-
-            canvas.width = exportOriginalSize ? sWidth : 1200;
-            canvas.height = exportOriginalSize ? sHeight : (sHeight / sWidth) * 1200;
-
-            // Apply Adjustments filters
-            const brightness = 1 + (adjustments.exposure * 0.25) + (adjustments.highlights * 0.001) + (adjustments.whites * 0.002);
-            const contrast = 1 + (adjustments.contrast * 0.005) + (adjustments.clarity * 0.003);
-            const saturate = 1 + (adjustments.saturation * 0.008) + (adjustments.vibrance * 0.004);
-            const sepia = adjustments.temp > 0 ? adjustments.temp * 0.0015 : 0;
-            const hue = adjustments.tint * 0.2;
-
-            ctx.filter = `brightness(${Math.max(0.1, brightness)}) contrast(${Math.max(0.1, contrast)}) saturate(${Math.max(0, saturate)}) sepia(${Math.max(0, sepia)}) hue-rotate(${hue}deg)`;
-            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-
-            // Apply Vignette on Canvas
-            if (adjustments.vignette > 0) {
-              const gradient = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, canvas.width * 0.2, canvas.width / 2, canvas.height / 2, canvas.width * 0.7);
-              gradient.addColorStop(0, 'rgba(0,0,0,0)');
-              gradient.addColorStop(1, `rgba(0,0,0,${adjustments.vignette * 0.007})`);
-              ctx.fillStyle = gradient;
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
-            // Apply Healed Spots on Export
-            healedSpots.forEach(spot => {
-              const hx = (spot.x / 100) * canvas.width;
-              const hy = (spot.y / 100) * canvas.height;
-              ctx.save();
-              ctx.filter = 'blur(15px)';
-              ctx.beginPath();
-              ctx.arc(hx, hy, 35, 0, Math.PI * 2);
-              ctx.drawImage(canvas, hx - 35, hy - 35, 70, 70, hx - 35, hy - 35, 70, 70);
-              ctx.restore();
-            });
-
-            canvas.toBlob((outputBlob) => {
-              if (!outputBlob) {
-                setIsExporting(false);
-                showToast('Export failed. Try again.');
-                return;
-              }
-              const downloadUrl = URL.createObjectURL(outputBlob);
-              const a = document.createElement('a');
-              a.href = downloadUrl;
-              const ext = exportFormat === 'image/png' ? 'png' : exportFormat === 'image/webp' ? 'webp' : 'jpg';
-              a.download = `FrameFolk_${selectedImage.name.replace(/\.[^/.]+$/, '')}_edited.${ext}`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(downloadUrl);
-              URL.revokeObjectURL(objectUrl);
-
-              setIsExporting(false);
-              setShowExportModal(false);
-              showToast('Photo exported successfully! 📥');
-            }, exportFormat, exportQuality);
-          };
-
-          img.onerror = () => {
-            setIsExporting(false);
-            showToast('Error loading image source.');
-          };
-        } catch (err) {
-          setIsExporting(false);
-          showToast('Download failed. Network error.');
-        }
-      };
-
-      const getFilterStyle = () => {
-        const brightness = 1 + (adjustments.exposure * 0.25) + (adjustments.highlights * 0.001) + (adjustments.whites * 0.002);
-        const contrast = 1 + (adjustments.contrast * 0.005) + (adjustments.clarity * 0.003);
-        const saturate = 1 + (adjustments.saturation * 0.008) + (adjustments.vibrance * 0.004);
-        const sepia = adjustments.temp > 0 ? adjustments.temp * 0.0015 : 0;
-        const hue = adjustments.tint * 0.2;
-        return `brightness(${Math.max(0.1, brightness)}) contrast(${Math.max(0.1, contrast)}) saturate(${Math.max(0, saturate)}) sepia(${Math.max(0, sepia)}) hue-rotate(${hue}deg)`;
-      };
-
-      const getCropAspectRatioClass = () => {
-        switch(cropRatio) {
-          case '1:1': return 'aspect-square';
-          case '16:9': return 'aspect-video';
-          case '4:3': return 'aspect-[4/3]';
-          default: return 'aspect-auto';
-        }
-      };
-
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#0b0f17] text-gray-200 font-sans select-none overflow-hidden">
-          
-          {toastMessage && (
-            <div className="absolute top-16 z-50 bg-gray-900/95 text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded-full shadow-2xl text-xs font-medium tracking-wide backdrop-blur-md">
-              {toastMessage}
+<body>
+    <div class="app-container">
+        <!-- Top Toolbar -->
+        <header class="top-bar">
+            <div class="brand">
+                <h1>FRAME FOLK</h1>
+                <span class="slogan">Timeless Tales of Togetherness</span>
             </div>
-          )}
-
-          {/* Export Modal */}
-          {showExportModal && (
-            <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-              <div className="bg-[#181d28] border border-gray-700 rounded-2xl p-5 w-full max-w-sm shadow-2xl space-y-4">
-                <div className="flex justify-between items-center border-b border-gray-700 pb-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-cyan-400 text-lg">💾</span>
-                    <span className="text-sm font-bold text-gray-100 uppercase tracking-wider">Export Photo Settings</span>
-                  </div>
-                  <button onClick={() => setShowExportModal(false)} className="text-gray-400 hover:text-white text-sm font-bold">✕</button>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">File Format</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: 'image/jpeg', label: 'JPG' },
-                      { id: 'image/png', label: 'PNG' },
-                      { id: 'image/webp', label: 'WEBP' }
-                    ].map((fmt) => (
-                      <button
-                        key={fmt.id}
-                        onClick={() => setExportFormat(fmt.id)}
-                        className={`py-2 rounded-lg text-xs font-semibold transition ${exportFormat === fmt.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
-                      >
-                        {fmt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400 uppercase tracking-wider">Export Quality</span>
-                    <span className="text-cyan-400 font-bold font-mono">{Math.round(exportQuality * 100)}%</span>
-                  </div>
-                  <input 
-                    type="range" min="0.5" max="1.0" step="0.05"
-                    value={exportQuality} 
-                    onChange={(e) => setExportQuality(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <div>
-                    <div className="text-xs font-medium text-gray-200">Original Resolution Size</div>
-                    <div className="text-[10px] text-gray-400">Keep full camera source dimensions</div>
-                  </div>
-                  <input 
-                    type="checkbox" checked={exportOriginalSize} 
-                    onChange={(e) => setExportOriginalSize(e.target.checked)}
-                    className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-gray-700">
-                  <button 
-                    onClick={() => setShowExportModal(false)}
-                    className="py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold transition"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={executeExport}
-                    disabled={isExporting}
-                    className="py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-cyan-600/30 transition flex items-center justify-center space-x-1"
-                  >
-                    {isExporting ? 'Exporting...' : '📥 Save & Download'}
-                  </button>
-                </div>
-              </div>
+            <div class="top-actions">
+                <input type="file" id="imageLoader" accept="image/*" hidden>
+                <button id="uploadBtn" class="btn primary"><i class="fas fa-upload"></i> Upload</button>
+                <button id="undoBtn" class="btn" title="Undo" disabled><i class="fas fa-undo"></i></button>
+                <button id="redoBtn" class="btn" title="Redo" disabled><i class="fas fa-redo"></i></button>
+                <button id="resetBtn" class="btn" title="Reset All"><i class="fas fa-sync-alt"></i> Reset</button>
+                <button id="compareBtn" class="btn" title="Hold to Compare"><i class="fas fa-columns"></i> Before/After</button>
+                <button id="exportBtn" class="btn accent"><i class="fas fa-download"></i> Export JPG</button>
             </div>
-          )}
+        </header>
 
-          <div className="w-full max-w-[430px] h-[100vh] sm:h-[880px] sm:rounded-[40px] bg-[#12161f] shadow-2xl flex flex-col relative overflow-hidden border border-gray-800">
-            
-            {/* Top Bar */}
-            <div className="flex items-center justify-between px-4 py-3 bg-[#12161f] border-b border-gray-800/80 z-20">
-              <div className="flex items-center space-x-3">
-                <button onClick={() => showToast('Frame Folk Studio')} className="p-2 hover:bg-gray-800 rounded-full transition text-gray-300">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
-                </button>
-                <div className="flex items-center space-x-1">
-                  <span className="text-xs font-semibold text-gray-200 tracking-wide truncate max-w-[130px]">{selectedImage.name}</span>
-                  <span className="bg-cyan-500/20 text-cyan-400 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">RAW</span>
+        <!-- Main Workspace -->
+        <div class="main-workspace">
+            <!-- Left / Center Canvas Area -->
+            <div class="canvas-container">
+                <div id="dropZone" class="drop-zone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Drag & Drop your photo here</h3>
+                    <p>or click Upload to start editing</p>
+                    <button class="btn primary" onclick="document.getElementById('imageLoader').click()">Browse Photo</button>
                 </div>
-              </div>
-
-              <div className="flex items-center space-x-1">
-                <button onClick={handleUndo} className="p-2 hover:bg-gray-800 rounded-full transition text-gray-400 hover:text-white" title="Undo">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a5 5 0 015 5v2m-6-7l-4-4m0 0l4-4m-4 4h14"/></svg>
-                </button>
-                <button onClick={handleRedo} className="p-2 hover:bg-gray-800 rounded-full transition text-gray-400 hover:text-white" title="Redo">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 10H11a5 5 0 00-5 5v2m6-7l4-4m0 0l-4-4m4 4H7"/></svg>
-                </button>
-                <button onClick={() => setShowExportModal(true)} className="p-2 hover:bg-gray-800 rounded-full transition text-cyan-400 hover:text-cyan-300" title="Export Settings">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                </button>
-                <button onClick={() => setShowPhotoPicker(!showPhotoPicker)} className="px-2 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-medium transition shadow-md">
-                  Photos
-                </button>
-              </div>
+                <canvas id="imageCanvas" class="hidden"></canvas>
             </div>
 
-            {/* Photo Picker Modal */}
-            {showPhotoPicker && (
-              <div className="absolute top-14 left-4 right-4 bg-[#1a202c]/95 border border-gray-700 rounded-xl p-3 z-30 shadow-2xl backdrop-blur-md">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">Select or Upload Photo</span>
-                  <button onClick={() => setShowPhotoPicker(false)} className="text-gray-400 hover:text-white text-xs">✕ Close</button>
+            <!-- Right Sidebar Controls -->
+            <aside class="sidebar">
+                <div class="tabs">
+                    <button class="tab-btn active" data-target="lightPanel"><i class="fas fa-sun"></i> Light</button>
+                    <button class="tab-btn" data-target="colorPanel"><i class="fas fa-palette"></i> Color</button>
+                    <button class="tab-btn" data-target="effectsPanel"><i class="fas fa-magic"></i> Effects</button>
+                    <button class="tab-btn" data-target="transformPanel"><i class="fas fa-crop"></i> Transform</button>
                 </div>
-                
-                <label className="flex items-center justify-center w-full py-2 mb-3 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-lg cursor-pointer text-cyan-400 text-xs font-medium transition">
-                  📁 Upload from Device Gallery
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                </label>
 
-                <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Preset Samples</div>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                  {SAMPLE_PHOTOS.map((photo) => (
-                    <div 
-                      key={photo.id}
-                      onClick={() => { setSelectedImage(photo); setHealedSpots([]); setShowPhotoPicker(false); showToast(`Loaded ${photo.name}`); }}
-                      className={`relative rounded-lg overflow-hidden cursor-pointer border-2 transition ${selectedImage.id === photo.id ? 'border-cyan-500 shadow-cyan-500/30 shadow-lg' : 'border-transparent opacity-70 hover:opacity-100'}`}
-                    >
-                      <img src={photo.url} alt={photo.name} className="w-full h-20 object-cover" />
-                      <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1 text-[10px] text-white truncate">{photo.name}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Image Preview Area */}
-            <div className="flex-1 relative flex items-center justify-center bg-[#090d14] overflow-hidden p-2">
-              <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-[10px] text-gray-300 flex items-center space-x-2 z-10 shadow-lg">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>Frame Folk • OFFLINE READY</span>
-              </div>
-
-              <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-[10px] text-cyan-400 font-medium z-10 shadow-lg">
-                Preset: {activePreset}
-              </div>
-
-              <div className={`relative w-full h-full flex items-center justify-center overflow-hidden ${getCropAspectRatioClass()}`} onClick={handleImageClick}>
-                <img 
-                  src={selectedImage.url} 
-                  alt="Editing Preview" 
-                  className="max-h-full max-w-full object-contain rounded transition-all duration-150 shadow-2xl"
-                  style={{ filter: getFilterStyle() }}
-                />
-                
-                {adjustments.vignette > 0 && (
-                  <div className="absolute inset-0 pointer-events-none transition-all" style={{ boxShadow: `inset 0 0 ${adjustments.vignette * 1.5}px rgba(0,0,0,${adjustments.vignette * 0.008})` }} />
-                )}
-
-                {adjustments.grain > 0 && (
-                  <div 
-                    className="absolute inset-0 pointer-events-none mix-blend-overlay"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                      opacity: adjustments.grain * 0.008
-                    }}
-                  />
-                )}
-
-                {healedSpots.map((spot) => (
-                  <div 
-                    key={spot.id} 
-                    className="absolute w-6 h-6 border-2 border-cyan-400 bg-cyan-500/20 rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 backdrop-blur-sm"
-                    style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Adjustment Tool Drawer */}
-            <div className="bg-[#181d28] border-t border-gray-800/80 px-4 py-3 transition-all duration-200">
-              {activeTool === 'crop' && (
-                <div className="space-y-2">
-                  <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Aspect Ratios</div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {['Original', '1:1', '16:9', '4:3'].map((ratio) => (
-                      <button
-                        key={ratio}
-                        onClick={() => { setCropRatio(ratio); showToast(`Crop set to ${ratio}`); }}
-                        className={`py-2 rounded text-xs font-semibold transition ${cropRatio === ratio ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
-                      >
-                        {ratio}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTool === 'healing' && (
-                <div className="py-2 text-center space-y-1">
-                  <span className="text-xs font-semibold text-cyan-400">🩹 Healing Brush Active</span>
-                  <p className="text-[11px] text-gray-400">Tap anywhere on the photo preview above to heal spots or remove blemishes.</p>
-                </div>
-              )}
-
-              {activeTool === 'masking' && (
-                <div className="py-2 text-center space-y-1">
-                  <span className="text-xs font-semibold text-cyan-400">⭕ Selective Masking</span>
-                  <p className="text-[11px] text-gray-400">Subject, Sky, and Background AI masks ready.</p>
-                </div>
-              )}
-
-              {activeTool === 'profiles' && (
-                <div className="py-2 text-center space-y-1">
-                  <span className="text-xs font-semibold text-cyan-400">📷 Modern & Vintage Profiles</span>
-                  <p className="text-[11px] text-gray-400">Color grading profiles loaded and active.</p>
-                </div>
-              )}
-
-              {activeTool === 'light' && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-cyan-400 font-medium uppercase tracking-wider">{lightSubTab}</span>
-                    <span className="text-gray-300 font-mono font-bold bg-gray-900 px-2 py-0.5 rounded border border-gray-700">
-                      {adjustments[lightSubTab] > 0 ? `+${adjustments[lightSubTab]}` : adjustments[lightSubTab]}
-                    </span>
-                  </div>
-
-                  <input 
-                    type="range" 
-                    min={lightSubTab === 'exposure' ? -2 : -100} 
-                    max={lightSubTab === 'exposure' ? 2 : 100} 
-                    step={lightSubTab === 'exposure' ? 0.05 : 1}
-                    value={adjustments[lightSubTab]} 
-                    onChange={(e) => handleSliderChange(lightSubTab, e.target.value)}
-                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-                  />
-
-                  <div className="grid grid-cols-6 gap-1 pt-1 border-t border-gray-800">
-                    {[
-                      { id: 'exposure', label: 'Exposure' },
-                      { id: 'contrast', label: 'Contrast' },
-                      { id: 'highlights', label: 'Highlights' },
-                      { id: 'shadows', label: 'Shadows' },
-                      { id: 'whites', label: 'Whites' },
-                      { id: 'blacks', label: 'Blacks' }
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setLightSubTab(item.id)}
-                        className={`flex flex-col items-center py-1.5 rounded transition ${lightSubTab === item.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'text-gray-400 hover:bg-gray-800'}`}
-                      >
-                        <span className="text-[10px] font-medium truncate w-full text-center">{item.label}</span>
-                        <span className="text-[10px] font-mono text-gray-500">{adjustments[item.id]}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTool === 'color' && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-cyan-400 font-medium uppercase tracking-wider">{colorSubTab}</span>
-                    <span className="text-gray-300 font-mono font-bold bg-gray-900 px-2 py-0.5 rounded border border-gray-700">
-                      {adjustments[colorSubTab] > 0 ? `+${adjustments[colorSubTab]}` : adjustments[colorSubTab]}
-                    </span>
-                  </div>
-
-                  <input 
-                    type="range" min="-100" max="100" 
-                    value={adjustments[colorSubTab]} 
-                    onChange={(e) => handleSliderChange(colorSubTab, e.target.value)}
-                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-                  />
-
-                  <div className="grid grid-cols-4 gap-1 pt-1 border-t border-gray-800">
-                    {[
-                      { id: 'temp', label: 'Temp' },
-                      { id: 'tint', label: 'Tint' },
-                      { id: 'vibrance', label: 'Vibrance' },
-                      { id: 'saturation', label: 'Saturation' }
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setColorSubTab(item.id)}
-                        className={`py-1 rounded text-xs font-medium transition ${colorSubTab === item.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'text-gray-400 hover:bg-gray-800'}`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTool === 'effects' && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-cyan-400 font-medium uppercase tracking-wider">{effectsSubTab}</span>
-                    <span className="text-gray-300 font-mono font-bold bg-gray-900 px-2 py-0.5 rounded border border-gray-700">
-                      {adjustments[effectsSubTab] > 0 ? `+${adjustments[effectsSubTab]}` : adjustments[effectsSubTab]}
-                    </span>
-                  </div>
-
-                  <input 
-                    type="range" min="0" max="100" 
-                    value={adjustments[effectsSubTab]} 
-                    onChange={(e) => handleSliderChange(effectsSubTab, e.target.value)}
-                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-                  />
-
-                  <div className="grid grid-cols-5 gap-1 pt-1 border-t border-gray-800">
-                    {[
-                      { id: 'texture', label: 'Texture' },
-                      { id: 'clarity', label: 'Clarity' },
-                      { id: 'dehaze', label: 'Dehaze' },
-                      { id: 'vignette', label: 'Vignette' },
-                      { id: 'grain', label: 'Grain' }
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setEffectsSubTab(item.id)}
-                        className={`py-1 rounded text-[10px] font-medium transition truncate ${effectsSubTab === item.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'text-gray-400 hover:bg-gray-800'}`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTool === 'detail' && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-cyan-400 font-medium uppercase tracking-wider">{detailSubTab}</span>
-                    <span className="text-gray-300 font-mono font-bold bg-gray-900 px-2 py-0.5 rounded border border-gray-700">
-                      {adjustments[detailSubTab]}
-                    </span>
-                  </div>
-
-                  <input 
-                    type="range" min="0" max="100" 
-                    value={adjustments[detailSubTab]} 
-                    onChange={(e) => handleSliderChange(detailSubTab, e.target.value)}
-                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-                  />
-
-                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-800">
-                    {[
-                      { id: 'sharpening', label: 'Sharpening' },
-                      { id: 'noise', label: 'Noise Reduction' }
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setDetailSubTab(item.id)}
-                        className={`py-1.5 rounded text-xs font-medium transition ${detailSubTab === item.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'text-gray-400 hover:bg-gray-800'}`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTool === 'presets' && (
-                <div className="space-y-2">
-                  <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Recommended Presets</div>
-                  <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-none">
-                    {PRESETS.map((p) => (
-                      <button
-                        key={p.name}
-                        onClick={() => applyPreset(p)}
-                        className={`flex-shrink-0 w-20 h-24 rounded-lg overflow-hidden relative border-2 transition ${activePreset === p.name ? 'border-cyan-500 scale-105 shadow-lg shadow-cyan-500/20' : 'border-gray-700 opacity-80 hover:opacity-100'}`}
-                      >
-                        <img src={selectedImage.url} alt={p.name} className="w-full h-full object-cover filter brightness-90" />
-                        <div className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[10px] font-medium text-white truncate px-1">
-                          {p.name}
+                <div class="panel-content">
+                    <!-- Light Panel -->
+                    <div id="lightPanel" class="control-panel active">
+                        <h3>Light Adjustments</h3>
+                        <div class="control-group">
+                            <label>Exposure <span id="exposureVal">0</span></label>
+                            <input type="range" id="exposure" min="-100" max="100" value="0">
                         </div>
-                      </button>
-                    ))}
-                  </div>
+                        <div class="control-group">
+                            <label>Contrast <span id="contrastVal">0</span></label>
+                            <input type="range" id="contrast" min="-100" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Highlights <span id="highlightsVal">0</span></label>
+                            <input type="range" id="highlights" min="-100" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Shadows <span id="shadowsVal">0</span></label>
+                            <input type="range" id="shadows" min="-100" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Whites <span id="whitesVal">0</span></label>
+                            <input type="range" id="whites" min="-100" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Blacks <span id="blacksVal">0</span></label>
+                            <input type="range" id="blacks" min="-100" max="100" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Color Panel -->
+                    <div id="colorPanel" class="control-panel">
+                        <h3>Color & Tone</h3>
+                        <div class="control-group">
+                            <label>Temperature <span id="tempVal">0</span></label>
+                            <input type="range" id="temp" min="-100" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Tint <span id="tintVal">0</span></label>
+                            <input type="range" id="tint" min="-100" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Saturation <span id="saturationVal">0</span></label>
+                            <input type="range" id="saturation" min="-100" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Vibrance <span id="vibranceVal">0</span></label>
+                            <input type="range" id="vibrance" min="-100" max="100" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Effects Panel -->
+                    <div id="effectsPanel" class="control-panel">
+                        <h3>Effects & Texture</h3>
+                        <div class="control-group">
+                            <label>Clarity <span id="clarityVal">0</span></label>
+                            <input type="range" id="clarity" min="-100" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Vignette <span id="vignetteVal">0</span></label>
+                            <input type="range" id="vignette" min="0" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Grain <span id="grainVal">0</span></label>
+                            <input type="range" id="grain" min="0" max="100" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>Sharpen <span id="sharpenVal">0</span></label>
+                            <input type="range" id="sharpen" min="0" max="100" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Transform Panel -->
+                    <div id="transformPanel" class="control-panel">
+                        <h3>Transform & Crop</h3>
+                        <div class="button-grid">
+                            <button id="rotateLeftBtn" class="btn"><i class="fas fa-undo"></i> Rotate Left</button>
+                            <button id="rotateRightBtn" class="btn"><i class="fas fa-redo"></i> Rotate Right</button>
+                            <button id="flipHBtn" class="btn"><i class="fas fa-arrows-alt-h"></i> Flip H</button>
+                            <button id="flipVBtn" class="btn"><i class="fas fa-arrows-alt-v"></i> Flip V</button>
+                        </div>
+                    </div>
                 </div>
-              )}
-
-            </div>
-
-            {/* Bottom Nav */}
-            <div className="flex items-center justify-between px-2 py-3 bg-[#0d1017] border-t border-gray-900 overflow-x-auto scrollbar-none z-20">
-              {[
-                { id: 'presets', label: 'Presets', icon: '✨' },
-                { id: 'crop', label: 'Crop', icon: '📐' },
-                { id: 'profiles', label: 'Profiles', icon: '📷' },
-                { id: 'auto', label: 'Auto', icon: '⚡' },
-                { id: 'light', label: 'Light', icon: '☀️' },
-                { id: 'color', label: 'Color', icon: '🌡️' },
-                { id: 'effects', label: 'Effects', icon: '🔲' },
-                { id: 'detail', label: 'Detail', icon: '🔺' },
-                { id: 'healing', label: 'Healing', icon: '🩹' },
-                { id: 'masking', label: 'Masking', icon: '⭕' }
-              ].map((tool) => {
-                const isActive = activeTool === tool.id;
-                return (
-                  <button
-                    key={tool.id}
-                    onClick={() => {
-                      setActiveTool(tool.id);
-                      if(tool.id === 'auto') handleAutoAdjust();
-                    }}
-                    className={`flex flex-col items-center justify-center min-w-[52px] py-1 px-1 rounded-lg transition-all ${isActive ? 'text-cyan-400 bg-cyan-500/10 font-semibold' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'}`}
-                  >
-                    <span className="text-base mb-0.5">{tool.icon}</span>
-                    <span className="text-[10px] tracking-tight">{tool.label}</span>
-                    {isActive && <div className="w-1 h-1 bg-cyan-400 rounded-full mt-0.5"></div>}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="w-full h-4 bg-[#0d1017] flex items-center justify-center pb-1">
-              <div className="w-32 h-1 bg-gray-600 rounded-full"></div>
-            </div>
-
-          </div>
+            </aside>
         </div>
-      );
-    }
-
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
-</body>
-</html>
+  
